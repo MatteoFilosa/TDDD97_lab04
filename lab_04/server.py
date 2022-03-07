@@ -1,4 +1,5 @@
 from flask import Flask, jsonify, request, render_template, session, redirect, url_for
+from passlib.hash import sha256_crypt
 from engineio.async_drivers import gevent
 from authlib.integrations.flask_client import OAuth
 from forms import ForgotForm
