@@ -1,8 +1,7 @@
 from flask import Flask, jsonify, request, render_template, session, redirect, url_for
-from passlib.hash import sha256_crypt
+from werkzeug.security import generate_password_hash, check_password_hash
 from engineio.async_drivers import gevent
 from authlib.integrations.flask_client import OAuth
-from forms import ForgotForm
 #from auth_decorator import login_required
 from datetime import timedelta
 from flask_socketio import SocketIO, send, emit
@@ -145,29 +144,16 @@ def sign_in():
                 token = binascii.hexlify(os.urandom(20)).decode()
                 tokenDic["token"] = token
                 tokenDic["email"] = json['email']
-                print(tokenDic)
-                database_helper.send_token(token)
+                tokenHash = generate_password_hash(token)
+                database_helper.send_token(tokenHash)
                 #jsonify token
-                return jsonify({"token" : token}), 200
+                return jsonify({"token" : tokenHash}), 200
             else:
                 return "{}", 404
         else:
             return "{}", 400
     else:
         return "{}", 400
-
-@app.route('/user/signout', methods = ['POST'])
-def sign_out():
-
-#header token
-    json = request.headers.get("token")
-    if json==tokenDic['token'] and tokenDic['email']!="":
-        tokenDic['token'] = ""
-        tokenDic['email'] = ""
-        return "{}", 200
-    else:
-        return "{}", 401
-
 
 @app.route('/user/changepassword', methods = ['PUT'])
 def change_password():

@@ -57,7 +57,7 @@ function validateLogin() {
         document.getElementById("welcome").innerHTML = document.getElementById("profileview").textContent;
       }else if (request.status == 400){
         document.getElementById("log").innerHTML = "<h3>Bad request!</h3>";
-      }else if (request.status == 500){
+      }else if (request.status == 404){
         document.getElementById("log").innerHTML = "<h3>Wrong username or password!</h3>";
       }
     }

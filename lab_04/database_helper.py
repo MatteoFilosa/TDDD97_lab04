@@ -1,5 +1,6 @@
 import sqlite3
 from flask import g
+from werkzeug.security import generate_password_hash, check_password_hash
 
 DATABASE_URI = 'database.db'
 
@@ -31,7 +32,8 @@ def disconnect_db():
 
 def create_user(email, password, firstname, familyname, gender, city, country):
     try:
-        get_db().execute("insert into user values(?,?,?,?,?,?,?)", [email, password, firstname, familyname, gender, city, country])
+        hashed_value = generate_password_hash(password)
+        get_db().execute("insert into user values(?,?,?,?,?,?,?)", [email, hashed_value, firstname, familyname, gender, city, country])
 
         get_db().commit()
         return True
@@ -43,12 +45,17 @@ def create_user(email, password, firstname, familyname, gender, city, country):
 
 def get_password(email, password):
 
+
     loggedInUser["email"] = email
-    cursor = get_db().execute("select * from user where user.email = ? and password = ?", [email, password])
-    rows = cursor.fetchall()
+    cursor = get_db().execute("select password from user where user.email = ?", [email])
+    stored_password = cursor.fetchall()
+    for row in stored_password:
+        stored_password = row[0]
+        break
+    result = check_password_hash(stored_password, password)
     cursor.close()
-    print(rows)
-    if rows:
+    print(stored_password)
+    if result:
         return True
     else:
         return False
