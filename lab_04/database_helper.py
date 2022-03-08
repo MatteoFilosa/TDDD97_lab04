@@ -76,9 +76,20 @@ def find_user_byemail(email):
 def new_password(token, password, newpassword):
 
     try:
-        get_db().execute("update user set password = ? where password = ?", [newpassword,password])
-        get_db().commit()
-        return True
+        cursor = get_db().execute("select password from user where user.email = ?", [loggedInUser["email"]])
+        stored_password = cursor.fetchall()
+        for row in stored_password:
+            stored_password = row[0]
+            break
+        result = check_password_hash(stored_password, password)
+        print(stored_password)
+        print(password)
+        if result:
+            get_db().execute("update user set password = ? where user.email = ?", [newpassword, loggedInUser["email"]])
+            get_db().commit()
+            return True
+        else:
+            return False
     except:
         return False
 

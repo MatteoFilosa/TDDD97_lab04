@@ -1,5 +1,11 @@
 window.onload = function(){
-document.getElementById("welcome").innerHTML = document.getElementById("welcomeview").textContent;
+  console.log("Attempting to open websocket connection");
+  document.getElementById("welcome").innerHTML = document.getElementById("welcomeview").textContent;
+  socket = io("ws://127.0.0.1:5000");
+  socket.on('connect', function() {
+  console.log("websocket connection established");
+  socket.emit('my event', {data: 'I\'m connected!'});
+});
 }
 //
 let tokenClient;
@@ -49,6 +55,7 @@ function validateLogin() {
         document.getElementById("log").innerHTML = "<h3>Correctly signed in!</h3>";
         let arr = JSON.parse(request.responseText)
         tokenClient = arr.token;
+        console.log(tokenClient);
         emailClient = email;
         //currentUser = {socket, tokenClient, email};
         console.log(currentUser);
@@ -415,7 +422,7 @@ function validateGetMessagesBrowse(){
         document.getElementById("messagesWallBrowse").innerHTML = result;
       }else if (request.status == 400){
         document.getElementById("logB").innerHTML = "<h3>Bad request!</h3>";
-      }else if (request.status == 500){
+      }else if (request.status == 404){
         document.getElementById("logB").innerHTML = "<h3>User not found!</h3>";
       }
     }

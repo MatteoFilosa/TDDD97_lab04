@@ -5,8 +5,6 @@ from authlib.integrations.flask_client import OAuth
 #from auth_decorator import login_required
 from datetime import timedelta
 from flask_socketio import SocketIO, send, emit
-from geventwebsocket.handler import WebSocketHandler
-from gevent.pywsgi import WSGIServer
 import binascii
 import os
 import database_helper
@@ -17,11 +15,17 @@ tokenDic = {
     "token": "",
     "email": ""
  }
+tokenHash = ""
 
 
 app = Flask(__name__, template_folder='static')
 app.debug = True
+socketio = SocketIO(app)
 
+@socketio.on('connect')
+def websocketConnection():
+    print("Client establishing websocket connection")
+    
 #Session config
 app.secret_key = 'random secret'
 
@@ -160,8 +164,10 @@ def change_password():
 
     json = request.get_json()
     if "token" in json and "password" in json and "newpassword" in json:
-        if len(json['password']) < 30 and len(json['newpassword']) < 30 and json['token']==tokenDic['token']:
-            result = database_helper.new_password(json["token"], json['password'], json['newpassword'])
+        if len(json['password']) < 30 and len(json['newpassword']) < 30 and check_password_hash(json['token'], tokenDic['token']):
+            passwordHash = generate_password_hash(json['newpassword'])
+            tokenHash = generate_password_hash(json["token"])
+            result = database_helper.new_password(tokenHash, json['password'], passwordHash)
             if result == True:
                 return "{}", 201
             else:
@@ -177,60 +183,71 @@ def change_password():
 def post_message():
 
     json = request.get_json(force = True)
-    print(json)
-    print("ok")
-    result = database_helper.message_help(tokenDic['token'], json['message'], json['email'])
-    if result == True:
-        return "{}", 201
+    if check_password_hash(json['token'], tokenDic['token']):
+        tokenHash = generate_password_hash(json["token"])
+        result = database_helper.message_help(tokenHash, json['message'], json['email'])
+        if result == True:
+            return "{}", 201
+        else:
+            return "{}", 500
     else:
-        return "{}", 500
+        return "{}", 400 #wrong token
 
 
 @app.route('/user/getuserdatabytoken', methods = ['GET'])
 def get_user_data_by_token():
 
-    rows = database_helper.retrieve_data_token(tokenDic['token'])
+    newtokenHash = generate_password_hash(tokenHash)
+    rows = database_helper.retrieve_data_token(newtokenHash)
     if rows != False:
         result = []
         for row in rows:
             result.append({"email": row[0], "firstname" : row[2], "familyname" : row[3], "gender" : row[4], "city" : row[5], "country" : row[6]})
-        return jsonify(result), 200
+            return jsonify(result), 200
+        else:
+            return "{}", 404
     else:
-        return "{}", 404
+        return "{}", 400
 
 
 @app.route('/user/getuserdatabyemail/<email>', methods = ['GET'])
 def get_user_data_by_email(email):
 
-
-    rows = database_helper.retrieve_data_email(tokenDic['token'], email)
+    newtokenHash = generate_password_hash(tokenHash)
+    rows = database_helper.retrieve_data_email(newtokenHash, email)
     if rows != False:
         result = []
         for row in rows:
             result.append({"email": row[0], "firstname" : row[2], "familyname" : row[3], "gender" : row[4], "city" : row[5], "country" : row[6]})
-        return jsonify(result), 200
+            return jsonify(result), 200
+        else:
+            return "{}", 404
     else:
-        return "{}", 404
+        return "{}", 400
 
 
 @app.route('/user/getusermessagesbytoken', methods = ['GET'])
 def get_user_messages_by_token():
 
-    result = database_helper.retrieve_messages_token(tokenDic['token'])
+    newtokenHash = generate_password_hash(tokenHash)
+    result = database_helper.retrieve_messages_token(newtokenHash)
     if result != False:
         return jsonify({"result" : result}), 200
     else:
         return "{}", 404
 
 
+
 @app.route('/user/getusermessagesbyemail/<email>', methods = ['GET'])
 def get_user_messages_by_email(email):
 
-    rows = database_helper.retrieve_messages_email(tokenDic['token'], email)
+    newtokenHash = generate_password_hash(tokenHash)
+    rows = database_helper.retrieve_messages_email(newtokenHash, email)
     if rows != False:
         return jsonify({"messages" : rows}), 200
     else:
         return "{}", 500
+
 
 
 
