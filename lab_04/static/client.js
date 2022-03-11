@@ -34,13 +34,7 @@ function validateLogin() {
     document.getElementById('log').innerHTML = "Password cannot be shorter than 5 characters.";
     return false;
   }
-  /*
-  const socket = new WebSocket('ws://127.0.0.1:5000');
 
-  socket.addEventListener('open', function (event) {
-    socket.send("Hello Server! We're in sign in now.");
-  });
-  */
 
   let user = {"email" : email, "password" : password}
   let request = new XMLHttpRequest();
@@ -52,15 +46,23 @@ function validateLogin() {
   request.onreadystatechange = function(){
     if (this.readyState == 4){
       if (this.status == 200){
+        socket = io("ws://127.0.0.1:5000");
+        socket.on('connect', function() {
+          console.log("websocket connection established");
+
+        });
+        
+        socket.addEventListener('message', function (event) {
+          console.log("WebSocket message received:", event);
+          if (event == "signout") {
+            validateSignOut();
+            
+          }
+        });
         document.getElementById("log").innerHTML = "<h3>Correctly signed in!</h3>";
         let arr = JSON.parse(request.responseText)
         tokenClient = arr.token;
-        console.log(tokenClient);
         emailClient = email;
-        //currentUser = {socket, tokenClient, email};
-        console.log(currentUser);
-        //document.getElementById("token").innerHTML = arr.token;
-        //console.log(arr.token);
         document.getElementById("welcome").innerHTML = document.getElementById("profileview").textContent;
       }else if (request.status == 400){
         document.getElementById("log").innerHTML = "<h3>Bad request!</h3>";
@@ -72,18 +74,6 @@ function validateLogin() {
 
   request.send(JSON.stringify(user));
 
-/*
-  document.getElementById('log').innerHTML = a.message;
-  token = a.data;
-  console.log(token);
-  if(token != null){
-
-    document.getElementById("welcome").innerHTML = document.getElementById("profileview").textContent;
-    document.getElementById("token").innerHTML = token;
-    document.getElementById("emailNow").textContent = email;
-    validateGetMessages();
-  }
-  */
 
   validateGetMessages();
 }
@@ -428,4 +418,27 @@ function validateGetMessagesBrowse(){
     }
   }
   request.send();
+}
+
+function deleteMessages(){
+  let request = new XMLHttpRequest();
+
+  request.open("DELETE", "/user/deleteallmessages", true);
+  request.onreadystatechange = function(){
+    if (this.readyState == 4){
+      if (this.status == 200){
+        document.getElementById("messagesWall").innerHTML ="";
+        document.getElementById("logDelete").innerHTML="";
+      }else if (request.status == 400){
+        document.getElementById("logB").innerHTML = "<h3>Bad request!</h3>";
+      }else if (request.status == 404){
+        document.getElementById("logB").innerHTML = "<h3>User not found!</h3>";
+      }
+    }
+  }
+  request.send();
+}
+
+function alertDelete(){
+  document.getElementById("logDelete").innerHTML = "<h3>Are you sure to delete all your messages?</h3>" + "<button class= 'confirm' onclick = 'deleteMessages();' >Confirm</button>";
 }

@@ -12,6 +12,20 @@
           socket.emit('my event', {data: 'I\'m connected!'});
         });
     </script>
+    <script>
+      function allowDrop(ev) {
+        ev.preventDefault();
+      }
+      
+      function drag(ev) {
+        ev.dataTransfer.setData("text", ev.target.id);
+      }
+      
+      function drop(ev) {
+        alertDelete();
+        //deleteMessages();
+      }
+      </script>
     <script type = "text/view" id ="welcomeview">
     
 
@@ -81,11 +95,15 @@
         </div>
 
         <button class="infos" onclick="validateGetMessages();">Refresh</button>
-        <div id="messagesWall">
+        <div id="messagesWall" draggable = "true" ondragstart="drag(event)">
 
         </div>
 
         <div id ="logB">
+        </div>
+        <h3> Delete all messages </h3>
+        <img src="static/trashbin.png" alt="trash" style="width:50px;height:50px;" ondrop="drop(event)" ondragover="allowDrop(event)">
+        <div id = "logDelete">
         </div>
         <span onclick="this.parentElement.style.display='none'">[x]</span>
       </div>

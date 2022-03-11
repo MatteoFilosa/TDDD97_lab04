@@ -9,7 +9,7 @@ import binascii
 import os
 import database_helper
 import sys
-
+webSocketConnection=[]
 
 tokenDic = {
     "token": "",
@@ -25,6 +25,16 @@ socketio = SocketIO(app)
 @socketio.on('connect')
 def websocketConnection():
     print("Client establishing websocket connection")
+    if webSocketConnection:
+        for e in webSocketConnection:
+            print("e[0] is: ", e[0])
+            print("email is: ", tokenDic["email"])
+            print("Socket id is: ", request.sid)
+            if(e[1]==tokenDic["email"]):
+                webSocketConnection.remove(e)
+                socketio.send("signout", to=e[0])
+
+    webSocketConnection.append((request.sid, tokenDic["email"], tokenDic["token"]))
     
 #Session config
 app.secret_key = 'random secret'
@@ -92,9 +102,7 @@ def api():
             ws.send(message)
     return
 
-if __name__ == '__main__':
-    http_server = WSGIServer(('',8080), app, handler_class=WebSocketHandler)
-    http_server.serve_forever()
+
 
 @app.teardown_request
 def after_request(exception):
@@ -163,10 +171,10 @@ def sign_in():
 def change_password():
 
     json = request.get_json()
-    if "token" in json and "password" in json and "newpassword" in json:
-        if len(json['password']) < 30 and len(json['newpassword']) < 30 and check_password_hash(json['token'], tokenDic['token']):
+    if "password" in json and "newpassword" in json:
+        if len(json['password']) < 30 and len(json['newpassword']) < 30:
             passwordHash = generate_password_hash(json['newpassword'])
-            tokenHash = generate_password_hash(json["token"])
+            tokenHash = generate_password_hash(tokenDic["token"])
             result = database_helper.new_password(tokenHash, json['password'], passwordHash)
             if result == True:
                 return "{}", 201
@@ -257,6 +265,15 @@ def check_user():
     json = request.get_json(force = True)
     print(json)
     result = database_helper.find_user_byemail(json)
+    if result != False:
+        return "{}", 200
+    else:
+        return "{}", 404
+
+@app.route('/user/deleteallmessages', methods = ['DELETE'])
+def deleteallmessages():
+
+    result = database_helper.delete_user_messages(tokenDic["email"])
     if result != False:
         return "{}", 200
     else:
