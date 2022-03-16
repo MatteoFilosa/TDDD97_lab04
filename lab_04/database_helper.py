@@ -32,8 +32,8 @@ def disconnect_db():
 
 def create_user(email, password, firstname, familyname, gender, city, country):
     try:
-        hashed_value = generate_password_hash(password)
-        get_db().execute("insert into user values(?,?,?,?,?,?,?)", [email, hashed_value, firstname, familyname, gender, city, country])
+        
+        get_db().execute("insert into user values(?,?,?,?,?,?,?)", [email, password, firstname, familyname, gender, city, country])
 
         get_db().commit()
         return True

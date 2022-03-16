@@ -134,7 +134,8 @@ def sign_up():
     json = request.get_json()
     if "email" in json and "password" in json and "firstname" in json and "familyname" in json and "gender" in json and "city" in json and "country" in json:
         if len(json['email']) < 30 and len(json['password']) > 5 and len(json['password']) < 30 and len(json['firstname']) < 30 and len(json['familyname']) < 30 and len(json['gender']) < 30 and len(json['city']) < 30 and len(json['country']) < 30:
-            result = database_helper.create_user(json['email'], json['password'], json['firstname'], json['familyname'], json['gender'], json['city'], json['country'])
+            hashed_value = generate_password_hash(json['password'])
+            result = database_helper.create_user(json['email'], hashed_value, json['firstname'], json['familyname'], json['gender'], json['city'], json['country'])
             if result == True:
                 return "{}", 201
             else:
@@ -252,7 +253,7 @@ def get_user_messages_by_email(email):
     newtokenHash = generate_password_hash(tokenHash)
     rows = database_helper.retrieve_messages_email(newtokenHash, email)
     if rows != False:
-        return jsonify({"messages" : rows}), 200
+        return jsonify({"message" : rows}), 200
     else:
         return "{}", 500
 
