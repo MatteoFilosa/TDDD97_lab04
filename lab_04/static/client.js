@@ -1,6 +1,8 @@
 
 
+
 window.onload = function(){
+  
   //check if we have a token or not in stoerage, if we already have, we 're logged in. If we're logged in, we want to create
   //a websocket connection. When  you refresh, you should still be signed in
   if(sessionStorage.getItem("token") == null){
@@ -220,7 +222,7 @@ function pswCheck(){
       }else if (request.status == 400){
         document.getElementById("logA").innerHTML = "<h3>Bad request!</h3>";
       }else if (request.status == 500){
-        document.getElementById("logA").innerHTML = "<h3>Something bad happened!</h3>";
+        document.getElementById("logA").innerHTML = "<h3>Incorrect old password!</h3>";
       }
     }
   }
@@ -231,6 +233,13 @@ function pswCheck(){
 
 function validateSignOut(){
   
+  document.getElementById("welcome").innerHTML = document.getElementById("welcomeview").textContent;
+  
+}
+
+function validateSignOutFromChangePassword(){
+
+  socket.disconnect();
   document.getElementById("welcome").innerHTML = document.getElementById("welcomeview").textContent;
   
 }
@@ -255,7 +264,7 @@ function loadInfos(){
       }else if (request.status == 400){
         document.getElementById("logB").innerHTML = "<h3>Bad request!</h3>";
       }else if (request.status == 404){
-        document.getElementById("logB").innerHTML = "<h3>User not found!</h3>";
+        document.getElementById("logB").innerHTML = "<h3>This user has no messages!</h3>";
       }
     }
   }
@@ -313,7 +322,7 @@ function validateGetMessages(){
       }else if (request.status == 400){
         document.getElementById("logB").innerHTML = "<h3>Bad request!</h3>";
       }else if (request.status == 404){
-        document.getElementById("logB").innerHTML = "<h3>User not found!</h3>";
+        document.getElementById("logB").innerHTML = "<h3>This user has no messages!</h3>";
       }
     }
   }
@@ -458,3 +467,4 @@ function deleteMessages(){
 function alertDelete(){
   document.getElementById("logDelete").innerHTML = "<h3>Are you sure to delete all your messages?</h3>" + "<button class= 'confirm' onclick = 'deleteMessages();' >Confirm</button>";
 }
+

@@ -1,7 +1,7 @@
 from flask import Flask, jsonify, request, render_template, session, redirect, url_for
 from werkzeug.security import generate_password_hash, check_password_hash
 from engineio.async_drivers import gevent
-from authlib.integrations.flask_client import OAuth
+#from authlib.integrations.flask_client import OAuth
 #from auth_decorator import login_required
 from datetime import timedelta
 from flask_socketio import SocketIO, send, emit
@@ -35,33 +35,39 @@ def websocketConnection():
                 socketio.send("signout", to=e[0])
 
     webSocketConnection.append((request.sid, tokenDic["email"], tokenDic["token"]))
+
+@socketio.on('disconnect')
+def disconnect():
+    if webSocketConnection:
+        for e in webSocketConnection:
+            webSocketConnection.remove(e)
     
 #Session config
 app.secret_key = 'random secret'
 
 
 # oAuth Setup
-oauth = OAuth(app)
-google = oauth.register(
-    name='google',
-    client_id="274085789990-3tmjvlcbdq657p8vf8tsjaloob4q6kei.apps.googleusercontent.com",#os.getenv("GOOGLE_CLIENT_ID"),
-    client_secret="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",
-    access_token_url='https://accounts.google.com/o/oauth2/token',
-    access_token_params=None,
-    authorize_url='https://accounts.google.com/o/oauth2/auth',
-    authorize_params=None,
-    api_base_url='https://www.googleapis.com/oauth2/v1/',
-    userinfo_endpoint='https://openidconnect.googleapis.com/v1/userinfo',  # This is only needed if using openId to fetch user info
-    client_kwargs={'scope': 'openid email profile'},
-)
-
+#oauth = OAuth(app)
+#google = oauth.register(
+    #name='google',
+    #client_id="274085789990-3tmjvlcbdq657p8vf8tsjaloob4q6kei.apps.googleusercontent.com",#os.getenv("GOOGLE_CLIENT_ID"),
+    #client_secret="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",
+    #access_token_url='https://accounts.google.com/o/oauth2/token',
+    #access_token_params=None,
+    #authorize_url='https://accounts.google.com/o/oauth2/auth',
+    #authorize_params=None,
+    #api_base_url='https://www.googleapis.com/oauth2/v1/',
+    #userinfo_endpoint='https://openidconnect.googleapis.com/v1/userinfo',  # This is only needed if using openId to fetch user info
+    #client_kwargs={'scope': 'openid email profile'},
+#)
+"""""
 @app.route('/oauthlogin')
 def login():
     google = oauth.create_client('google')  # create the google oauth client
     redirect_uri = url_for('authorize', _external=True)
     return google.authorize_redirect(redirect_uri)
-
-
+"""
+""""
 @app.route('/authorize')
 def authorize():
     google = oauth.create_client('google')  # create the google oauth client
@@ -74,7 +80,7 @@ def authorize():
     session['profile'] = user_info
     session.permanent = True  # make the session permanant so it keeps existing after broweser gets closed
     return redirect('/')
-
+"""
 
 @app.route('/oauthlogout')
 def logout():
@@ -110,7 +116,7 @@ def after_request(exception):
 
 @app.route('/')
 def index():
-    return render_template('client.html') #render_template? or app.send_static_file
+    return app.send_static_file('client.html') #render_template? or app.send_static_file
 
 
 #@socketio.on('message')
@@ -120,6 +126,7 @@ def index():
 #@socketio.on('my event')
 #def handle_my_custom_event(json):
     #emit('my response', json)
+    """""
 @app.route('/forgot', methods=('GET', 'POST'))
 def forgot():
     error = None
@@ -128,6 +135,7 @@ def forgot():
     if form.validate_on_submit():
         pass
     return render_template('static/forgot.html', form=form, error=error, message=message)
+    """""
 
 @app.route('/user/signup', methods = ['POST'])
 def sign_up():
