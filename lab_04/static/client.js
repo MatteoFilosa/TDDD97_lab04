@@ -68,6 +68,7 @@ function validateLogin() {
           console.log("WebSocket message received:", event);
           if (event == "signout") {
             validateSignOut();
+          
             
           }
         });
@@ -233,6 +234,8 @@ function pswCheck(){
 
 function validateSignOut(){
   
+  sessionStorage.removeItem('token');
+  sessionStorage.removeItem('email');
   document.getElementById("welcome").innerHTML = document.getElementById("welcomeview").textContent;
   
 }
